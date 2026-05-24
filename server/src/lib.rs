@@ -18,11 +18,10 @@ impl KdctlServer {
         (server, shutdown_tx)
     }
 
-    pub fn run(&self, port: u16) -> Result<()> {
-        let addr = format!("0.0.0.0:{}", port);
+    pub fn run(&self, addr: &str) -> Result<()> {
         let listener = TcpListener::bind(addr)?;
         listener.set_nonblocking(true)?;
-        info!("TCP server listening on port {}", port);
+        info!("TCP server listening on {}", addr);
         
         loop {
             match self.shutdown_rx.try_recv() {

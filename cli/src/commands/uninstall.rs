@@ -3,15 +3,29 @@ use log::*;
 use windows_service::service::{ServiceAccess, ServiceState};
 use windows_service::service_manager::{ServiceManager, ServiceManagerAccess};
 use kdctl_shared::constants::*;
+use std::fs;
+
+use crate::config::KdctlConfig;
 
 pub fn handle_uninstall() -> Result<()> {
-    info!("Uninstalling {}", SERVICE_NAME);
+    let config = KdctlConfig::load()?;
 
+    info!("Uninstalling {}", HOST_SERVICE_NAME);
+
+    remove_service(HOST_SERVICE_NAME)?;
+    remove_directory(&config.host.install_dir)?;
+
+    info!("Uninstall complete");
+    
+    Ok(())
+}
+
+fn remove_service(service_name: &str) -> Result<()> {
     let manager_access = ServiceManagerAccess::CONNECT;
     let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)?;
 
     let service = match service_manager.open_service(
-        SERVICE_NAME,
+        service_name,
         ServiceAccess::QUERY_STATUS | ServiceAccess::STOP | ServiceAccess::DELETE
     ) {
         Ok(s) => s,
@@ -38,22 +52,28 @@ pub fn handle_uninstall() -> Result<()> {
     service.delete()?;
     info!("Service deleted");
 
-    // let current_exe = std::env::current_exe()?;
-    // let install_dir = current_exe.parent().unwrap();
+    Ok(())
+}
 
-    // let server_path = install_dir.join("kdctl-server.exe");
-    // if server_path.exists() {
-    //     std::fs::remove_file(&server_path)?;
-    //     info!("Removed: {}", server_path.display());
-    // }
+fn remove_directory(dir: &std::path::Path) -> Result<()> {
+    if !dir.exists() {
+        return Ok(());
+    }
 
-    // let log_dir = std::path::Path::new(r"C:\ProgramData\kdctl\logs");
-    // if log_dir.exists() && log_dir.read_dir()?.next().is_none() {
-    //     std::fs::remove_dir(log_dir)?;
-    //     info!("Removed empty log directory: {}", log_dir.display());
-    // }
+    info!("Cleaning up directory: {}", dir.display());
 
-    // info!("Uninstall complete");
-    
+    for entry in fs::read_dir(dir)? {
+        let entry = entry?;
+        let path = entry.path();
+
+        if path.is_file() {
+            fs::remove_file(&path)?;
+            info!("Removed file: {}", path.display());
+        }
+    }
+
+    fs::remove_dir(dir)?;
+    info!("Removed directory: {}", dir.display());
+
     Ok(())
 }

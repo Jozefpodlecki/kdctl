@@ -5,12 +5,12 @@ use windows_service::service_manager::{ServiceManager, ServiceManagerAccess};
 use kdctl_shared::constants::*;
 
 pub fn handle_stop() -> Result<()> {
-    info!("Stopping {}...", SERVICE_NAME);
+    info!("Stopping {}...", HOST_SERVICE_NAME);
 
     let manager_access = ServiceManagerAccess::CONNECT;
     let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)?;
 
-    let service = match service_manager.open_service(SERVICE_NAME, ServiceAccess::STOP | ServiceAccess::QUERY_STATUS) {
+    let service = match service_manager.open_service(HOST_SERVICE_NAME, ServiceAccess::STOP | ServiceAccess::QUERY_STATUS) {
         Ok(s) => s,
         Err(e) => bail!("Service not found: {}", e),
     };

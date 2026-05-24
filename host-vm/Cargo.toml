@@ -1,8 +1,11 @@
 [package]
-name = "kdctl-client"
+name = "kdctl-host-vm"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.97"
+
+[build-dependencies]
+winres = "0.1.12"
 
 [dependencies]
 log = "0.4.18"
@@ -12,4 +15,5 @@ windows-service = "0.8.1"
 rand = "0.10.1"
 serde = { version = "1.0", features = ["derive"] }
 rmp-serde = "1.1"
+kdctl-client = { path = "../client" }
 kdctl-shared = { path = "../shared" }

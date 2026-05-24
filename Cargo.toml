@@ -4,6 +4,7 @@ members = [
     "shared",
     "cli",
     "host",
+    "host-vm",
     "client",
     "server",
 ]
